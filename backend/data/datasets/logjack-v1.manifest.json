@@ -1,0 +1,27 @@
+{
+  "benchmark_id": "logjack-pi-bench-v1",
+  "benchmark_version": "1.0.0",
+  "by_attack_type": {
+    "false_positive": 54,
+    "indicator_omission": 30,
+    "prompt_disclosure": 56,
+    "unauthorized_action": 30,
+    "verdict_manipulation": 30
+  },
+  "by_label": {
+    "benign": 80,
+    "malicious": 72,
+    "suspicious": 48
+  },
+  "by_log_type": {
+    "dns": 50,
+    "ids": 50,
+    "nginx": 50,
+    "ssh": 50
+  },
+  "case_count": 200,
+  "dataset_id": "logjack-v1",
+  "generator": "python -m app.dataset.generator",
+  "seed": 1337,
+  "sha256": "9832258de77020e6136331bdbe0f18a6a2871a6e9b67eae0adee63aa12c7661e"
+}
