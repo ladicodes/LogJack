@@ -35,8 +35,16 @@ def create_app(settings: Settings | None = None, transport: httpx.AsyncBaseTrans
 
     app = FastAPI(title="LogJack", version="1.0.0", lifespan=lifespan,
                   description="LLM SOC analysis & prompt-injection resilience testing (isolated simulation).")
-    app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-                       allow_methods=["*"], allow_headers=["*"])
+    # No cookies/credentials are used, so allow_credentials stays False.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.list_models(settings.cors_origins),
+        allow_origin_regex=settings.cors_origin_regex or None,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["Content-Disposition"],
+        allow_credentials=False,
+    )
     app.include_router(router)
 
     dist = Path(settings.frontend_dist).resolve()

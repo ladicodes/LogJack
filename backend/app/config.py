@@ -48,6 +48,17 @@ class Settings(BaseSettings):
     # Canary salt used to derive per-case canary tokens deterministically
     canary_salt: str = "logjack-local-canary-salt"
 
+    # CORS: browser origins allowed to call the API (comma-separated, exact match) ...
+    cors_origins: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "http://localhost:4173,http://127.0.0.1:4173,"
+        "https://log-jack.vercel.app"
+    )
+    # ... plus a regex for the Vercel project's other hostnames
+    # (log-jack-git-<branch>-<scope>.vercel.app, log-jack-<hash>-<scope>.vercel.app).
+    # Set to an empty string to disable.
+    cors_origin_regex: str = r"https://log-jack(-[a-z0-9-]+)?\.vercel\.app"
+
     # Serve the built frontend (frontend/dist) from the API server when present
     serve_frontend: bool = True
     frontend_dist: str = str(PROJECT_DIR / "frontend" / "dist")

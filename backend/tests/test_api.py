@@ -41,6 +41,45 @@ def test_health_and_meta(client):
     assert "whitelist_ip" in tools["privileged_denied"]
 
 
+def _preflight(client, origin):
+    return client.options("/api/overview", headers={"Origin": origin, "Access-Control-Request-Method": "GET"})
+
+
+@pytest.mark.parametrize("origin", [
+    "https://log-jack.vercel.app",                                   # production
+    "https://log-jack-git-main-ladicodes-projects.vercel.app",       # branch deployment
+    "https://log-jack-a1b2c3d4e-ladicodes-projects.vercel.app",      # per-deploy preview
+    "http://localhost:5173",                                         # local dev
+])
+def test_cors_allows_frontend_origins(client, origin):
+    r = _preflight(client, origin)
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == origin
+    simple = client.get("/api/health", headers={"Origin": origin})
+    assert simple.headers["access-control-allow-origin"] == origin
+
+
+@pytest.mark.parametrize("origin", [
+    "https://evil.example.com",
+    "https://log-jack.vercel.app.evil.com",   # suffix trick must not match
+    "https://notlog-jack.vercel.app",
+    "http://log-jack.vercel.app",             # plain http is not allowed
+])
+def test_cors_rejects_other_origins(client, origin):
+    r = _preflight(client, origin)
+    assert r.status_code == 400
+    assert "access-control-allow-origin" not in r.headers
+    assert "access-control-allow-origin" not in client.get("/api/health", headers={"Origin": origin}).headers
+
+
+def test_cors_origins_configurable(settings):
+    settings.cors_origins = "https://soc.example.org"
+    settings.cors_origin_regex = ""
+    with TestClient(create_app(settings)) as c:
+        assert _preflight(c, "https://soc.example.org").status_code == 200
+        assert _preflight(c, "https://log-jack.vercel.app").status_code == 400
+
+
 def test_dataset_endpoints(client):
     ds = client.get("/api/datasets").json()
     assert ds[0]["id"] == "logjack-v1" and ds[0]["case_count"] == 200
