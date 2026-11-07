@@ -26,6 +26,7 @@ the results through a research dashboard.
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
+- [Deployment](#deployment)
 - [Usage](#usage)
 - [Testing](#testing)
 - [API reference](#api-reference)
@@ -185,6 +186,39 @@ All settings are optional environment variables, read from `backend/.env`. See
 
 Models are referenced as `provider:model`, for example `openai:gpt-4o-mini`,
 `anthropic:claude-sonnet-5-5`, `ollama:llama3.1:8b`, `mock:naive` or `mock:cautious`.
+
+---
+
+## Deployment
+
+The frontend and backend can be deployed separately, for example the dashboard on **Vercel** and
+the API on **Render**.
+
+**Backend (Render or any Python host)**
+
+| Setting | Value |
+|---|---|
+| Root directory | `backend` |
+| Build command | `pip install -r requirements.txt` |
+| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| `LOGJACK_CORS_ORIGINS` | Optional. Comma-separated exact origins allowed to call the API. The default already includes `https://log-jack.vercel.app` and local dev. |
+| `LOGJACK_CORS_ORIGIN_REGEX` | Optional. Defaults to `https://log-jack(-[a-z0-9-]+)?\.vercel\.app`, which covers the project's preview and branch URLs. |
+
+**Frontend (Vercel)**
+
+| Setting | Value |
+|---|---|
+| Root directory | `frontend` |
+| Framework preset | Vite (build `npm run build`, output `dist`) |
+| `VITE_API_BASE_URL` | The backend origin, e.g. `https://logjack-1.onrender.com` (a trailing `/` or `/api` is fine) |
+
+`VITE_API_BASE_URL` is inlined at **build time**, so redeploy the frontend after changing it.
+[`frontend/vercel.json`](frontend/vercel.json) rewrites every page route to `index.html`, so deep
+links such as `/playground` work on refresh. When `VITE_API_BASE_URL` is empty (local
+development), requests stay on the same origin and the Vite dev server proxies `/api` to the
+backend.
+
+If you attach a custom domain to the frontend, add it to `LOGJACK_CORS_ORIGINS` on the backend.
 
 ---
 
