@@ -1,0 +1,9 @@
+backend/.venv/
+backend/.env
+backend/data/logjack.db*
+backend/data/datasets/imported/
+__pycache__/
+.pytest_cache/
+frontend/node_modules/
+frontend/dist/
+.DS_Store
