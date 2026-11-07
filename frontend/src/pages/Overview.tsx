@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Ban, Cpu, Database, FlaskConical, ShieldCheck, Siren, Zap } from "lucide-react";
-import { api, DEFENSE_LABEL, fmtTime, pct, type MetricRow } from "../api";
+import { api, API_TARGET, DEFENSE_LABEL, fmtTime, pct, type MetricRow } from "../api";
 import { Card, Empty, ErrorNote, MockBadge, PageHeader, Progress, Spinner, Stat, StatusBadge, useAsync } from "../components/ui";
 import { DefenseBars } from "../components/charts";
 import { groupData } from "../components/analysis";
@@ -35,7 +35,7 @@ function LatestBlock({ scope, metrics, exp }: { scope: "real" | "mock"; metrics:
 export default function Overview() {
   const { data, error, loading } = useAsync(() => api.overview(), []);
   if (loading && !data) return <Spinner />;
-  if (error) return <ErrorNote error={`Cannot reach the API: ${error}. Is the backend running on :8000?`} />;
+  if (error) return <ErrorNote error={`Cannot reach the LogJack API at ${API_TARGET}: ${error}`} />;
   if (!data) return null;
   const c = data.counts;
   return (

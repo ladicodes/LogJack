@@ -278,8 +278,45 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Normalise VITE_API_BASE_URL to an origin (plus optional path prefix) WITHOUT a trailing
+ * "/api", because every endpoint path below already starts with "/api/".
+ *   "https://x.onrender.com"       -> "https://x.onrender.com"
+ *   "https://x.onrender.com/"      -> "https://x.onrender.com"
+ *   "https://x.onrender.com/api/"  -> "https://x.onrender.com"
+ *   "" / unset                     -> ""  (same-origin: Vite dev proxy or FastAPI serving dist)
+ */
+export function normalizeApiBase(raw: string | undefined): string {
+  let base = (raw ?? "").trim().replace(/\/+$/, "");
+  if (/\/api$/i.test(base)) base = base.slice(0, -4).replace(/\/+$/, "");
+  return base;
+}
+
+export const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE_URL);
+
+if (import.meta.env.PROD && !API_BASE) {
+  console.warn("[LogJack] VITE_API_BASE_URL is not set; API requests will go to this site's own origin.");
+}
+
+/** Absolute (or same-origin relative) URL for an API path such as "/api/overview". */
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+/** Human-readable description of where the API is expected to be, for error messages. */
+export const API_TARGET = API_BASE || (typeof window !== "undefined" ? window.location.origin : "");
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, init);
+  let res: Response;
+  try {
+    res = await fetch(apiUrl(path), init);
+  } catch {
+    // Network failure, DNS, or a CORS rejection (the browser hides which one).
+    throw new ApiError(0, `Network error reaching ${API_TARGET}. The API may be down, still waking up, or blocking this origin (CORS).`);
+  }
+  if (res.ok && !(res.headers.get("content-type") || "").includes("json")) {
+    throw new ApiError(res.status, `Expected JSON from ${apiUrl(path)} but got ${res.headers.get("content-type") || "no content type"}. Check VITE_API_BASE_URL.`);
+  }
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
     try {
@@ -348,8 +385,8 @@ export const api = {
   toolEvents: (params: Record<string, string | undefined> = {}) => request<ToolEvent[]>(`/api/tool-events${qs(params)}`),
   findings: (params: Record<string, string | undefined>) => request<Findings>(`/api/findings${qs(params)}`),
   exportUrl: (id: string, kind: "results" | "metrics", format: "csv" | "json") =>
-    `/api/experiments/${id}/export?kind=${kind}&format=${format}`,
-  datasetDownloadUrl: (id: string) => `/api/datasets/${encodeURIComponent(id)}/download`,
+    apiUrl(`/api/experiments/${id}/export?kind=${kind}&format=${format}`),
+  datasetDownloadUrl: (id: string) => apiUrl(`/api/datasets/${encodeURIComponent(id)}/download`),
 };
 
 export const DEFENSE_ORDER = ["baseline", "guardrails", "isolation", "combined"];
