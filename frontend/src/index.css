@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* LogJack is a dark-only console. Tokens are defined once here and used by role. */
+@theme {
+  --color-bg: #070b10;
+  --color-panel: #0d131a;
+  --color-card: #111820;
+  --color-raised: #17202b;
+  --color-line: #1f2a37;
+  --color-line-strong: #2c3a4b;
+  --color-ink: #e6edf3;
+  --color-ink-2: #aab6c4;
+  --color-muted: #7a8799;
+  --color-accent: #22d3ee;
+  --color-accent-strong: #06b6d4;
+
+  /* status (reserved; always paired with icon + label) */
+  --color-good: #0ca30c;
+  --color-warn: #fab219;
+  --color-serious: #ec835a;
+  --color-crit: #d03b3b;
+
+  /* categorical series, dark steps (validated on #111820) */
+  --color-s1: #3987e5;
+  --color-s2: #d95926;
+  --color-s3: #199e70;
+  --color-s4: #c98500;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(34, 211, 238, 0.06), transparent 60%),
+    radial-gradient(900px 400px at -10% 110%, rgba(57, 135, 229, 0.05), transparent 60%);
+  z-index: 0;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+}
+
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 8px;
+}
+
+mark.inj {
+  background: rgba(236, 131, 90, 0.22);
+  color: #ffd2bf;
+  border-bottom: 1px dashed var(--color-serious);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--color-line);
+}
+.recharts-text {
+  fill: var(--color-muted);
+  font-size: 12px;
+}
